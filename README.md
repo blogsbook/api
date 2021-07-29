@@ -1,0 +1,1 @@
+This is the backend for blogsbook, a website that I've planned to build for posting blogs and stuff.
