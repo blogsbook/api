@@ -1,23 +1,32 @@
-import fastify from 'fastify';
+import Fastify from 'fastify';
+import autoLoad from 'fastify-autoload';
+import fastifyMongodb from 'fastify-mongodb';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-const server = fastify();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-server.route({
-  method: 'GET',
-  url: '/',
-  handler: function (req, reply) {
-    reply.send({ status: 'working' });
-  },
+const fastify = Fastify();
+
+fastify.register(fastifyMongodb, {
+  forceClose: true,
+  url: process.env.BLOGSBOOK_ATLAS_URI,
+});
+
+fastify.register(autoLoad, {
+  dir: join(__dirname, 'routes'),
 });
 
 const PORT = process.env.PORT ?? 3000;
 
 const start = async () => {
   try {
-    await server.listen(PORT);
+    await fastify.listen(PORT);
     console.log(`Server started on http://localhost:${PORT}`);
   } catch (err) {
-    server.log.error(err);
+    console.log(err);
+    fastify.log.error(err);
     process.exit(1);
   }
 };

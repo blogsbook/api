@@ -5,12 +5,17 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "serve:dev": "nodemon dist/index.js"
+    "serve": "nodemon dist/index.js"
   },
   "author": "Shubham Parihar <shubhamparihar391@gmail.com>",
   "type": "module",
   "dependencies": {
-    "fastify": "^3.19.2"
+    "@sinclair/typebox": "^0.20.4",
+    "@types/uuid": "^8.3.1",
+    "fastify": "^3.19.2",
+    "fastify-autoload": "^3.8.0",
+    "fastify-mongodb": "^4.0.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "^16.4.7",
