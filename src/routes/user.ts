@@ -32,9 +32,9 @@ const userRoutes: FastifyPluginCallback = async fastify => {
     },
     handler: async function (req, reply) {
       const { body } = req;
-      const newUser = { ...body, id: uuidv4() };
-      await this.mongo.db?.collection('users').insertOne(newUser);
-      reply.status(201).send(newUser);
+      const createdUser: UserType = { ...body, id: uuidv4() };
+      await this.mongo.db?.collection('users').insertOne(createdUser);
+      reply.status(201).send(createdUser);
     },
   });
 
