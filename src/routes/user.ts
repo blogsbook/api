@@ -1,6 +1,8 @@
 import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  deleteSingleUserByIdParams,
+  deleteSingleUserByIdParamsType,
   getMultipleUsersByIdsQuery,
   getMultipleUsersByIdsQueryType,
   getSingleUserByIdParams,
@@ -57,11 +59,7 @@ const userRoutes: FastifyPluginCallback = async fastify => {
     method: 'GET',
     url: '/users',
     schema: {
-      querystring: {
-        type: 'object',
-        properties: getMultipleUsersByIdsQuery,
-        required: ['ids'],
-      },
+      querystring: getMultipleUsersByIdsQuery,
       response: {
         200: {
           type: 'array',
@@ -99,6 +97,22 @@ const userRoutes: FastifyPluginCallback = async fastify => {
         .find({}, { projection: { _id: 0 } })
         .toArray();
       reply.send(users);
+    },
+  });
+
+  /**
+   * Delete a single user by id
+   */
+  fastify.route<{ Params: deleteSingleUserByIdParamsType }>({
+    method: 'DELETE',
+    url: '/users/:id',
+    schema: {
+      params: deleteSingleUserByIdParams,
+    },
+    handler: async function (req, reply) {
+      const { id } = req.params;
+      await this.mongo.db?.collection('users').deleteOne({ id });
+      reply.status(204).send();
     },
   });
 

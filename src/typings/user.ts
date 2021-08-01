@@ -20,3 +20,8 @@ export const getMultipleUsersByIdsQuery = Type.Object({
   ids: Type.String(),
 });
 export type getMultipleUsersByIdsQueryType = Static<typeof getMultipleUsersByIdsQuery>;
+
+export const deleteSingleUserByIdParams = Type.Object({
+  id: Type.String(),
+});
+export type deleteSingleUserByIdParamsType = Static<typeof deleteSingleUserByIdParams>;
