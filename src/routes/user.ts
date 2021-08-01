@@ -1,6 +1,14 @@
 import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { getUserParams, getUserParamsType, NewUser, NewUserType, User } from '../typings/user.js';
+import {
+  getMultipleUsersByIdsQuery,
+  getMultipleUsersByIdsQueryType,
+  getSingleUserByIdParams,
+  getSingleUserByIdParamsType,
+  NewUser,
+  NewUserType,
+  User,
+} from '../typings/user.js';
 
 const userRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -26,11 +34,11 @@ const userRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Get a single user by id
    */
-  fastify.route<{ Params: getUserParamsType }>({
+  fastify.route<{ Params: getSingleUserByIdParamsType }>({
     method: 'GET',
     url: '/users/:id',
     schema: {
-      params: getUserParams,
+      params: getSingleUserByIdParams,
       response: {
         200: User,
       },
@@ -45,15 +53,13 @@ const userRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Get multiple users by ids
    */
-  fastify.route<{ Querystring: { ids: string } }>({
+  fastify.route<{ Querystring: getMultipleUsersByIdsQueryType }>({
     method: 'GET',
     url: '/users',
     schema: {
       querystring: {
         type: 'object',
-        properties: {
-          ids: { type: 'string' },
-        },
+        properties: getMultipleUsersByIdsQuery,
         required: ['ids'],
       },
       response: {

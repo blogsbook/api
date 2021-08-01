@@ -11,7 +11,12 @@ export const User = Type.Object({
 });
 export type UserType = Static<typeof User>;
 
-export const getUserParams = Type.Object({
+export const getSingleUserByIdParams = Type.Object({
   id: Type.String(),
 });
-export type getUserParamsType = Static<typeof getUserParams>;
+export type getSingleUserByIdParamsType = Static<typeof getSingleUserByIdParams>;
+
+export const getMultipleUsersByIdsQuery = Type.Object({
+  ids: Type.String(),
+});
+export type getMultipleUsersByIdsQueryType = Static<typeof getMultipleUsersByIdsQuery>;
