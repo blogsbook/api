@@ -7,7 +7,7 @@ export const User = Type.Object({
   password: Type.String(),
 });
 
-export const NewUser = Type.Pick(User, ['email', 'username', 'password']);
+export const NewUser = Type.Omit(User, ['id']);
 
 export const getSingleUserByIdParams = Type.Object({
   id: Type.String(),
