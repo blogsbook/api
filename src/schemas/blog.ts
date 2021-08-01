@@ -11,6 +11,6 @@ export const NewBlog = Type.Omit(Blog, ['id']);
 
 export const PartialBlog = Type.Partial(NewBlog);
 
-export const updateBlogByIdParams = Type.Object({
+export const UpdateBlogByIdParams = Type.Object({
   id: Type.String(),
 });
