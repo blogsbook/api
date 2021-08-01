@@ -1,7 +1,7 @@
 import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { Blog, NewBlog, PartialBlog, updateBlogByIdParams } from '../schemas/blog';
-import { BlogType, NewBlogType, PartialBlogType, updateBlogByIdParamsType } from '../typings/blog';
+import { BlogType, NewBlogType, PartialBlogType, UpdateBlogByIdParamsType } from '../typings/blog';
 
 const blogRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -27,7 +27,7 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Update a blog by id
    */
-  fastify.route<{ Params: updateBlogByIdParamsType; Body: PartialBlogType }>({
+  fastify.route<{ Params: UpdateBlogByIdParamsType; Body: PartialBlogType }>({
     method: 'PATCH',
     url: '/blogs/:id',
     schema: {

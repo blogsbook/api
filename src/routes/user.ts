@@ -2,17 +2,17 @@ import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { BadRequestError, ResourceNotFoundError } from '../schemas/error';
 import {
-  deleteSingleUserByIdParams,
-  getMultipleUsersByIdsQuery,
-  getSingleUserByIdParams,
+  DeleteSingleUserByIdParams,
+  GetMultipleUsersByIdsQuery,
+  GetSingleUserByIdParams,
   NewUser,
   User,
 } from '../schemas/user';
 import { BadRequestErrorType, ResourceNotFoundErrorType } from '../typings/error';
 import {
-  deleteSingleUserByIdParamsType,
-  getMultipleUsersByIdsQueryType,
-  getSingleUserByIdParamsType,
+  DeleteSingleUserByIdParamsType,
+  GetMultipleUsersByIdsQueryType,
+  GetSingleUserByIdParamsType,
   NewUserType,
   UserType,
 } from '../typings/user';
@@ -41,11 +41,11 @@ const userRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Get a single user by id
    */
-  fastify.route<{ Params: getSingleUserByIdParamsType }>({
+  fastify.route<{ Params: GetSingleUserByIdParamsType }>({
     method: 'GET',
     url: '/users/:id',
     schema: {
-      params: getSingleUserByIdParams,
+      params: GetSingleUserByIdParams,
       response: {
         200: User,
         404: ResourceNotFoundError,
@@ -70,11 +70,11 @@ const userRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Get multiple users by ids
    */
-  fastify.route<{ Querystring: getMultipleUsersByIdsQueryType }>({
+  fastify.route<{ Querystring: GetMultipleUsersByIdsQueryType }>({
     method: 'GET',
     url: '/users',
     schema: {
-      querystring: getMultipleUsersByIdsQuery,
+      querystring: GetMultipleUsersByIdsQuery,
       response: {
         200: {
           type: 'array',
@@ -138,11 +138,11 @@ const userRoutes: FastifyPluginCallback = async fastify => {
   /**
    * Delete a single user by id
    */
-  fastify.route<{ Params: deleteSingleUserByIdParamsType }>({
+  fastify.route<{ Params: DeleteSingleUserByIdParamsType }>({
     method: 'DELETE',
     url: '/users/:id',
     schema: {
-      params: deleteSingleUserByIdParams,
+      params: DeleteSingleUserByIdParams,
     },
     handler: async function (req, reply) {
       const { id } = req.params;

@@ -7,4 +7,4 @@ export type NewBlogType = Static<typeof NewBlog>;
 
 export type PartialBlogType = Static<typeof PartialBlog>;
 
-export type updateBlogByIdParamsType = Static<typeof updateBlogByIdParams>;
+export type UpdateBlogByIdParamsType = Static<typeof updateBlogByIdParams>;

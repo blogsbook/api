@@ -9,14 +9,14 @@ export const User = Type.Object({
 
 export const NewUser = Type.Omit(User, ['id']);
 
-export const getSingleUserByIdParams = Type.Object({
+export const GetSingleUserByIdParams = Type.Object({
   id: Type.String(),
 });
 
-export const getMultipleUsersByIdsQuery = Type.Object({
+export const GetMultipleUsersByIdsQuery = Type.Object({
   ids: Type.String(),
 });
 
-export const deleteSingleUserByIdParams = Type.Object({
+export const DeleteSingleUserByIdParams = Type.Object({
   id: Type.String(),
 });
