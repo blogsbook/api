@@ -1,16 +1,21 @@
 import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
+import { BadRequestError, ResourceNotFoundError } from '../schemas/error';
 import {
   deleteSingleUserByIdParams,
-  deleteSingleUserByIdParamsType,
   getMultipleUsersByIdsQuery,
-  getMultipleUsersByIdsQueryType,
   getSingleUserByIdParams,
-  getSingleUserByIdParamsType,
   NewUser,
-  NewUserType,
   User,
-} from '../typings/user.js';
+} from '../schemas/user';
+import { BadRequestErrorType, ResourceNotFoundErrorType } from '../typings/error';
+import {
+  deleteSingleUserByIdParamsType,
+  getMultipleUsersByIdsQueryType,
+  getSingleUserByIdParamsType,
+  NewUserType,
+  UserType,
+} from '../typings/user';
 
 const userRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -43,11 +48,21 @@ const userRoutes: FastifyPluginCallback = async fastify => {
       params: getSingleUserByIdParams,
       response: {
         200: User,
+        404: ResourceNotFoundError,
       },
     },
     handler: async function (req, reply) {
       const { id } = req.params;
-      const user = await this.mongo.db?.collection('users').findOne({ id }, { projection: { _id: 0 } });
+      const user = await this.mongo.db?.collection('users').findOne<UserType>({ id }, { projection: { _id: 0 } });
+      if (typeof user === 'undefined') {
+        const errorResponse: ResourceNotFoundErrorType = {
+          error: {
+            values: [id],
+            message: 'no user with the provided id exists',
+          },
+        };
+        return reply.status(404).send(errorResponse);
+      }
       reply.send(user);
     },
   });
@@ -65,14 +80,34 @@ const userRoutes: FastifyPluginCallback = async fastify => {
           type: 'array',
           items: User,
         },
+        400: BadRequestError,
+        404: ResourceNotFoundError,
       },
     },
     handler: async function (req, reply) {
-      const userIds = req.query.ids.split(',');
+      const { ids } = req.query;
+      if (ids.length === 0) {
+        const errorResponse: BadRequestErrorType = {
+          error: {
+            message: 'No ids were provided in the querystring',
+          },
+        };
+        return reply.status(400).send(errorResponse);
+      }
+      const idsArray = ids.split(',');
       const users = await this.mongo.db
         ?.collection('users')
-        .find({ id: { $in: userIds } }, { projection: { _id: 0 } })
+        .find<UserType>({ id: { $in: idsArray } }, { projection: { _id: 0 } })
         .toArray();
+      if (typeof users === 'undefined' || users.length === 0) {
+        const errorResponse: ResourceNotFoundErrorType = {
+          error: {
+            values: idsArray,
+            message: 'no users with the provided ids exist',
+          },
+        };
+        return reply.status(404).send(errorResponse);
+      }
       reply.send(users);
     },
   });
@@ -94,7 +129,7 @@ const userRoutes: FastifyPluginCallback = async fastify => {
     handler: async function (req, reply) {
       const users = await this.mongo.db
         ?.collection('users')
-        .find({}, { projection: { _id: 0 } })
+        .find<UserType>({}, { projection: { _id: 0 } })
         .toArray();
       reply.send(users);
     },
