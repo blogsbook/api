@@ -1,7 +1,13 @@
 import { FastifyPluginCallback } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { Blog, NewBlog, PartialBlog, UpdateBlogByIdParams } from '../schemas/blog';
-import { BlogType, NewBlogType, PartialBlogType, UpdateBlogByIdParamsType } from '../typings/blog';
+import { Blog, DeleteBlogByIdParams, NewBlog, PartialBlog, UpdateBlogByIdParams } from '../schemas/blog';
+import {
+  BlogType,
+  DeleteBlogByIdParamsType,
+  NewBlogType,
+  PartialBlogType,
+  UpdateBlogByIdParamsType,
+} from '../typings/blog';
 
 const blogRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -44,6 +50,22 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
         ?.collection('blogs')
         .findOneAndUpdate({ id }, { $set: body }, { projection: { _id: 0 }, returnDocument: 'after' });
       reply.send(updatedBlog?.value);
+    },
+  });
+
+  /**
+   * Delete a blog by id
+   */
+  fastify.route<{ Params: DeleteBlogByIdParamsType }>({
+    method: 'DELETE',
+    url: '/blogs/:id',
+    schema: {
+      params: DeleteBlogByIdParams,
+    },
+    handler: async function (req, reply) {
+      const { id } = req.params;
+      await this.mongo.db?.collection('blogs').deleteOne({ id });
+      reply.status(204).send();
     },
   });
 };

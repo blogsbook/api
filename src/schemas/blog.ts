@@ -17,3 +17,7 @@ export const PartialBlog = Type.Partial(NewBlog);
 export const UpdateBlogByIdParams = Type.Object({
   id: Type.String(),
 });
+
+export const DeleteBlogByIdParams = Type.Object({
+  id: Type.String(),
+});
