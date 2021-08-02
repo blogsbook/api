@@ -25,7 +25,6 @@
         "endOfLine": "lf",
         "printWidth": 120,
         "quoteProps": "as-needed",
-        "trailingComma": "all",
         "arrowParens": "avoid"
       }
     ],
