@@ -12,10 +12,14 @@ export const Blog = Type.Object(
 
 export const NewBlog = Type.Omit(Blog, ['id']);
 
-export const PartialBlog = Type.Partial(NewBlog);
+export const PartialBlog = Type.Omit(Type.Partial(NewBlog), ['authorId']);
 
-export const UpdateBlogByIdParams = Type.Object({
+export const PatchBlogByIdParams = Type.Object({
   id: Type.String(),
+});
+
+export const PatchBlogByIdQuery = Type.Object({
+  authorId: Type.String(),
 });
 
 export const DeleteBlogByIdParams = Type.Object({

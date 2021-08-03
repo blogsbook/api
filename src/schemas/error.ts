@@ -12,3 +12,9 @@ export const BadRequestError = Type.Object({
     message: Type.String(),
   }),
 });
+
+export const UnauthorizedRequestError = Type.Object({
+  error: Type.Object({
+    message: Type.String(),
+  }),
+});
