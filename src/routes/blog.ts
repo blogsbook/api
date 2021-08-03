@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { FastifyPluginCallback } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,8 +10,7 @@ import {
   PatchBlogByIdParams,
   PatchBlogByIdQuery,
 } from '../schemas/blog';
-import { UnauthorizedRequestError } from '../schemas/error';
-import { AccessTokenType } from '../typings/auth';
+import { ResourceNotFoundError, UnauthorizedRequestError } from '../schemas/error';
 import {
   BlogType,
   DeleteBlogByIdParamsType,
@@ -20,6 +20,7 @@ import {
   PatchBlogByIdQueryType,
 } from '../typings/blog';
 import { ResourceNotFoundErrorType, UnauthorizedRequestErrorType } from '../typings/error';
+import { UserType } from '../typings/user';
 
 const blogRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -36,8 +37,6 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       },
     },
     handler: async function (req, reply) {
-      const { body } = req;
-      const { authorId } = body;
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
@@ -47,19 +46,13 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
         };
         return reply.status(401).send(errorResponse);
       }
-      const accessTokenDoc = await this.mongo.db
-        ?.collection('access-tokens')
-        .findOne<AccessTokenType>({ userId: authorId }, { projection: { _id: 0 } });
-      if (!accessTokenDoc) {
-        const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'The provided bearer token has been expired, please re-authorize',
-          },
-        };
-        return reply.status(401).send(errorResponse);
-      }
-      const { userId } = jwt.verify(bearerToken, accessTokenDoc.token) as { userId: string };
-      if (!userId || userId !== authorId) {
+      const { body } = req;
+      const user = await this.mongo.db
+        ?.collection('users')
+        .findOne<UserType>({ id: body.authorId }, { projection: { _id: 0 } });
+      const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
+      const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
+      if (!userId || userId !== body.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
           error: {
             message: 'The user is not authorized to create the requested blog',
@@ -86,12 +79,10 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       response: {
         200: Blog,
         401: UnauthorizedRequestError,
+        404: ResourceNotFoundError,
       },
     },
     handler: async function (req, reply) {
-      const { params, query, body } = req;
-      const { id } = params;
-      const { authorId } = query;
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
@@ -101,19 +92,33 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
         };
         return reply.status(401).send(errorResponse);
       }
-      const accessTokenDoc = await this.mongo.db
-        ?.collection('access-tokens')
-        .findOne<AccessTokenType>({ userId: authorId }, { projection: { _id: 0 } });
-      if (!accessTokenDoc) {
+      const { params, query, body } = req;
+      const blog = await this.mongo.db
+        ?.collection('blogs')
+        .findOne<BlogType>({ id: params.id }, { projection: { _id: 0 } });
+      if (!blog) {
+        const errorResponse: ResourceNotFoundErrorType = {
+          error: {
+            values: [params.id],
+            message: 'No blog with the provided id exists',
+          },
+        };
+        return reply.status(404).send(errorResponse);
+      }
+      if (query.authorId !== blog.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
           error: {
-            message: 'The provided bearer token has been expired, please re-authorize',
+            message: "You cannot edit another user's blog",
           },
         };
         return reply.status(401).send(errorResponse);
       }
-      const { userId } = jwt.verify(bearerToken, accessTokenDoc.token) as { userId: string };
-      if (!userId || userId !== authorId) {
+      const user = await this.mongo.db
+        ?.collection('users')
+        .findOne<UserType>({ id: query.authorId }, { projection: { _id: 0 } });
+      const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
+      const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
+      if (!userId || userId !== query.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
           error: {
             message: 'The user is not authorized to update the requested blog',
@@ -123,7 +128,7 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       }
       const updatedBlog = await this.mongo.db
         ?.collection('blogs')
-        .findOneAndUpdate({ id }, { $set: body }, { projection: { _id: 0 }, returnDocument: 'after' });
+        .findOneAndUpdate({ id: params.id }, { $set: body }, { projection: { _id: 0 }, returnDocument: 'after' });
       reply.send(updatedBlog?.value);
     },
   });
@@ -138,10 +143,10 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       params: DeleteBlogByIdParams,
       response: {
         401: UnauthorizedRequestError,
+        404: ResourceNotFoundError,
       },
     },
     handler: async function (req, reply) {
-      const { id } = req.params;
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
@@ -151,6 +156,7 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
         };
         return reply.status(401).send(errorResponse);
       }
+      const { id } = req.params;
       const blog = await this.mongo.db?.collection('blogs').findOne<BlogType>({ id }, { projection: { _id: 0 } });
       if (!blog) {
         const errorResponse: ResourceNotFoundErrorType = {
@@ -159,20 +165,13 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
             message: 'The blog to delete does not exist',
           },
         };
-        return reply.status(401).send(errorResponse);
+        return reply.status(404).send(errorResponse);
       }
-      const accessTokenDoc = await this.mongo.db
-        ?.collection('access-tokens')
-        .findOne<AccessTokenType>({ userId: blog.authorId }, { projection: { _id: 0 } });
-      if (!accessTokenDoc) {
-        const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'The provided bearer token has been expired, please re-authorize',
-          },
-        };
-        return reply.status(401).send(errorResponse);
-      }
-      const { userId } = jwt.verify(bearerToken, accessTokenDoc.token) as { userId: string };
+      const user = await this.mongo.db
+        ?.collection('users')
+        .findOne<UserType>({ id: blog.authorId }, { projection: { _id: 0 } });
+      const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
+      const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
       if (!userId || userId !== blog.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
           error: {
