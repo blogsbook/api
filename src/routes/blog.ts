@@ -20,7 +20,7 @@ import {
   PatchBlogByIdQueryType,
 } from '../typings/blog';
 import { ResourceNotFoundErrorType, UnauthorizedRequestErrorType } from '../typings/error';
-import { UserType } from '../typings/user';
+import { PrivateUserType } from '../typings/user';
 
 const blogRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -40,23 +40,23 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'Please provide bearer token for authorization',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'Please provide bearer token for authorization',
         };
         return reply.status(401).send(errorResponse);
       }
       const { body } = req;
       const user = await this.mongo.db
         ?.collection('users')
-        .findOne<UserType>({ id: body.authorId }, { projection: { _id: 0 } });
+        .findOne<PrivateUserType>({ id: body.authorId }, { projection: { _id: 0 } });
       const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
       const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
       if (!userId || userId !== body.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'The user is not authorized to create the requested blog',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'The user is not authorized to create the requested blog',
         };
         return reply.status(401).send(errorResponse);
       }
@@ -86,9 +86,9 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'Please provide bearer token for authorization',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'Please provide bearer token for authorization',
         };
         return reply.status(401).send(errorResponse);
       }
@@ -98,31 +98,30 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
         .findOne<BlogType>({ id: params.id }, { projection: { _id: 0 } });
       if (!blog) {
         const errorResponse: ResourceNotFoundErrorType = {
-          error: {
-            values: [params.id],
-            message: 'No blog with the provided id exists',
-          },
+          statusCode: 404,
+          error: 'Resource Not Found',
+          message: 'No blog with the provided id exists',
         };
         return reply.status(404).send(errorResponse);
       }
       if (query.authorId !== blog.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: "You cannot edit another user's blog",
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: "You cannot edit another user's blog",
         };
         return reply.status(401).send(errorResponse);
       }
       const user = await this.mongo.db
         ?.collection('users')
-        .findOne<UserType>({ id: query.authorId }, { projection: { _id: 0 } });
+        .findOne<PrivateUserType>({ id: query.authorId }, { projection: { _id: 0 } });
       const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
       const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
       if (!userId || userId !== query.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'The user is not authorized to update the requested blog',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'The user is not authorized to update the requested blog',
         };
         return reply.status(401).send(errorResponse);
       }
@@ -150,9 +149,9 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       const bearerToken = req.headers.authorization?.split(' ')[1];
       if (!bearerToken) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'Please provide bearer token for authorization',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'Please provide bearer token for authorization',
         };
         return reply.status(401).send(errorResponse);
       }
@@ -160,23 +159,22 @@ const blogRoutes: FastifyPluginCallback = async fastify => {
       const blog = await this.mongo.db?.collection('blogs').findOne<BlogType>({ id }, { projection: { _id: 0 } });
       if (!blog) {
         const errorResponse: ResourceNotFoundErrorType = {
-          error: {
-            values: [id],
-            message: 'The blog to delete does not exist',
-          },
+          statusCode: 404,
+          error: 'Resource Not Found',
+          message: 'The blog to delete does not exist',
         };
         return reply.status(404).send(errorResponse);
       }
       const user = await this.mongo.db
         ?.collection('users')
-        .findOne<UserType>({ id: blog.authorId }, { projection: { _id: 0 } });
+        .findOne<PrivateUserType>({ id: blog.authorId }, { projection: { _id: 0 } });
       const secretKey = createHash('sha256').update(`${user?.username}${user?.password}`).digest('hex');
       const { userId } = jwt.verify(bearerToken, secretKey) as { userId: string };
       if (!userId || userId !== blog.authorId) {
         const errorResponse: UnauthorizedRequestErrorType = {
-          error: {
-            message: 'The user is not authorized to delete the requested blog',
-          },
+          statusCode: 401,
+          error: 'Unauthorized Request',
+          message: 'The user is not authorized to delete the requested blog',
         };
         return reply.status(401).send(errorResponse);
       }

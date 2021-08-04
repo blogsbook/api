@@ -5,7 +5,7 @@ import { BearerToken, PostCreateBearerToken } from '../schemas/auth';
 import { BadRequestError, ResourceNotFoundError } from '../schemas/error';
 import { BearerTokenType, PostCreateBearerTokenType } from '../typings/auth';
 import { BadRequestErrorType, ResourceNotFoundErrorType } from '../typings/error';
-import { UserType } from '../typings/user';
+import { PrivateUserType } from '../typings/user';
 
 const authRoutes: FastifyPluginCallback = async fastify => {
   /**
@@ -24,21 +24,22 @@ const authRoutes: FastifyPluginCallback = async fastify => {
     },
     handler: async function (req, reply) {
       const { username, password } = req.body;
-      const user = await this.mongo.db?.collection('users').findOne<UserType>({ username }, { projection: { _id: 0 } });
+      const user = await this.mongo.db
+        ?.collection('users')
+        .findOne<PrivateUserType>({ username }, { projection: { _id: 0 } });
       if (!user) {
         const errorResponse: ResourceNotFoundErrorType = {
-          error: {
-            values: [username],
-            message: 'No user with the provided username exists',
-          },
+          statusCode: 404,
+          error: 'Resource Not Found',
+          message: 'No user with the provided username exists',
         };
         return reply.status(404).send(errorResponse);
       }
       if (password !== user.password) {
         const errorResponse: BadRequestErrorType = {
-          error: {
-            message: 'username and password do not match, please provide valid credentials',
-          },
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'username and password do not match, please provide valid credentials',
         };
         return reply.status(400).send(errorResponse);
       }

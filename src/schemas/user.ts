@@ -1,6 +1,14 @@
 import { Type } from '@sinclair/typebox';
 
-export const User = Type.Object(
+export const PublicUser = Type.Object(
+  {
+    id: Type.String(),
+    username: Type.String(),
+  },
+  { additionalProperties: false }
+);
+
+export const PrivateUser = Type.Object(
   {
     id: Type.String(),
     username: Type.String(),
@@ -10,7 +18,7 @@ export const User = Type.Object(
   { additionalProperties: false }
 );
 
-export const NewUser = Type.Omit(User, ['id']);
+export const NewUser = Type.Omit(PrivateUser, ['id']);
 
 export const GetSingleUserByIdParams = Type.Object({
   id: Type.String(),

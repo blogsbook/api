@@ -4,10 +4,13 @@ import {
   GetMultipleUsersByIdsQuery,
   GetSingleUserByIdParams,
   NewUser,
-  User,
+  PrivateUser,
+  PublicUser,
 } from '../schemas/user';
 
-export type UserType = Static<typeof User>;
+export type PublicUserType = Static<typeof PublicUser>;
+
+export type PrivateUserType = Static<typeof PrivateUser>;
 
 export type NewUserType = Static<typeof NewUser>;
 
