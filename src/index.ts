@@ -22,8 +22,8 @@ const PORT = process.env.PORT ?? 3000;
 
 const start = async () => {
   try {
-    await fastify.listen(PORT);
-    console.log(`Server started on http://localhost:${PORT}`);
+    const address = await fastify.listen(PORT);
+    console.log(`Server started on ${address}`);
   } catch (err) {
     console.log(err);
     fastify.log.error(err);
