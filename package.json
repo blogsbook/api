@@ -4,8 +4,9 @@
   "description": "The backend for blogsbook",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "serve": "nodemon --es-module-specifier-resolution=node dist/index.js"
+    "build:dev": "tsc -w",
+    "serve:dev": "nodemon --es-module-specifier-resolution=node dist/index.js",
+    "start": "tsc && node --es-module-specifier-resolution=node dist/index.js"
   },
   "author": "Shubham Parihar <shubhamparihar391@gmail.com>",
   "type": "module",
