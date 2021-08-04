@@ -22,8 +22,13 @@ const PORT = process.env.PORT ?? 3000;
 
 const start = async () => {
   try {
-    const address = await fastify.listen(PORT);
-    console.log(`Server started on ${address}`);
+    let address;
+    if (process.env.NODE_ENV === 'production') {
+      address = await fastify.listen(PORT, '0.0.0.0');
+    } else {
+      address = await fastify.listen(PORT);
+    }
+    console.log(`Server listening to ${address}`);
   } catch (err) {
     console.log(err);
     fastify.log.error(err);
