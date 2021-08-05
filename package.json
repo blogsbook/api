@@ -16,6 +16,7 @@
     "@sinclair/typebox": "^0.20.4",
     "fastify": "^3.19.2",
     "fastify-autoload": "^3.8.0",
+    "fastify-cors": "^6.0.2",
     "fastify-mongodb": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.2"
